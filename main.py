@@ -18,6 +18,8 @@ if __name__ == '__main__':
                 run = False
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
+                    coords = chessboard.get_square_from_pos(pg.mouse.get_pos())
                     print("Координаты клика: " + str(pg.mouse.get_pos()))
                     print("Номер клетки: " + str(chessboard.get_square_from_pos(pg.mouse.get_pos())))
-                    print("Координаты центра клетки: " + str(chessboard.get_center_of_cell(chessboard.get_square_from_pos(pg.mouse.get_pos()))) + "\n")
+                    print("Координаты центра клетки: " + str(chessboard.get_center_of_cell(chessboard.get_square_from_pos(pg.mouse.get_pos()))))
+                    print("Фигура: " + str(POSITIONS[coords[0]][coords[1]]) + "\n")
