@@ -14,9 +14,12 @@ class Chessboard:
         self.__screen.blit(self.board,
                            (WINDOW_SIZE[0] - self.board.get_width(), WINDOW_SIZE[1] - self.board.get_height()))
         self.__draw_playboard()
+        self.all_sprites.draw(self.__screen)
         pg.display.update()
+        self.all_sprites.update()
 
     def __draw_playboard(self):
+        self.all_sprites = pg.sprite.Group()
         for y in range(CELL_QTY):
             for x in range(CELL_QTY):
                 # заполняем доску полями
@@ -30,6 +33,13 @@ class Chessboard:
                     symbol = font_obj.render(str(9 - (y + 1)), 1, COLORS[y % 2])
                     cell.blit(symbol, (CELL_SIZE - 15, 5))
                 self.board.blit(cell, (x * CELL_SIZE, y * CELL_SIZE))
+                #Размещаем фигуры на доске
+                if y == 1:
+                    pawn = Pawn(self.get_center_of_cell((x, y)), "b")
+                    self.all_sprites.add(pawn)
+                if y == 6:
+                    pawn = Pawn(self.get_center_of_cell((x, y)), "w")
+                    self.all_sprites.add(pawn)
         self.__screen.blit(self.board,
                            (WINDOW_SIZE[0] - self.board.get_width(), WINDOW_SIZE[1] - self.board.get_height()))
 
@@ -45,68 +55,72 @@ class Chessboard:
         y = int(((coords[1]) * CELL_SIZE) + CELL_SIZE/2)
         return (x, y)
 
-    def handle_click(self, mx, my):
-        x = mx // CELL_SIZE
-        y = my // CELL_SIZE
-        clicked_square = self.get_square_from_pos([x, y])
-        if self.selected_piece is None:
-            if clicked_square.occupying_piece is not None:
-                if clicked_square.occupying_piece.color == self.turn:
-                    self.selected_piece = clicked_square.occupying_piece
-        elif self.selected_piece.move(self, clicked_square):
-            self.turn = 'white' if self.turn == 'black' else 'black'
-        elif clicked_square.occupying_piece is not None:
-            if clicked_square.occupying_piece.color == self.turn:
-                self.selected_piece = clicked_square.occupying_piece
+    def draw_figures(self):
+        pass
 
 
-class Figure(object):
-    def __init__(self, pos, color, board):
+
+class Figure(pg.sprite.Sprite):
+    def __init__(self, pos, color):
+        pg.sprite.Sprite.__init__(self)
         self.pos = pos
         self.x = pos[0]
         self.y = pos[1]
         self.color = color
         self.has_moved = False
 
-    def get_moves(self, board):
-        output = []
-        for direction in self.get_possible_moves(board):
-            for square in direction:
-                if square.occupying_piece is not None:
-                    if square.occupying_piece.color == self.color:
-                        break
-                    else:
-                        output.append(square)
-                        break
-                else:
-                    output.append(square)
-        return output
 
 class Pawn(Figure):
-    def __init__(self):
-        pass
+    def __init__(self, pos, color):
+        pg.sprite.Sprite.__init__(self)
+        Figure.__init__(self, pos, color)
+        if self.color == 'b':
+            self.image = pg.image.load("assets\/figures\/b_pa.png").convert_alpha()
+        else:
+            self.image = pg.image.load("assets\/figures\/w_pa.png").convert_alpha()
+        self.rect = self.image.get_rect(center=(self.x, self.y))
 
 
 class Rook(Figure):
     def __init__(self):
-        pass
+        super().__init__(self)
+        if self.color == 'b':
+            self.image = "assets\/figures\/b_ro.png"
+        else:
+            self.image = "assets\/figures\/w_ro.png"
 
 
 class Bishop(Figure):
     def __init__(self):
-        pass
+        super().__init__(self)
+        if self.color == 'b':
+            self.image = "assets\/figures\/b_bi.png"
+        else:
+            self.image = "assets\/figures\/w_bi.png"
 
 
 class Queen(Figure):
     def __init__(self):
-        pass
+        super().__init__(self)
+        if self.color == 'b':
+            self.image = "assets\/figures\/b_qu.png"
+        else:
+            self.image = "assets\/figures\/w_qu.png"
 
 
 class King(Figure):
     def __init__(self):
-        pass
+        super().__init__(self)
+        if self.color == 'b':
+            self.image = "assets\/figures\/b_ki.png"
+        else:
+            self.image = "assets\/figures\/w_ki.png"
 
 
 class Knight(Figure):
     def __init__(self):
-        pass
+        super().__init__(self)
+        if self.color == 'b':
+            self.image = "assets\/figures\/b_kn.png"
+        else:
+            self.image = "assets\/figures\/w_kn.png"
