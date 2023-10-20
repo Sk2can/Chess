@@ -13,12 +13,12 @@ class Chessboard:
         self.__screen = parent_surface
         self.__screen.blit(self.board,
                            (WINDOW_SIZE[0] - self.board.get_width(), WINDOW_SIZE[1] - self.board.get_height()))
-        self.__draw_playboard()
+        self.draw_playboard()
         self.all_sprites.draw(self.__screen)
         pg.display.update()
         self.all_sprites.update()
 
-    def __draw_playboard(self):
+    def draw_playboard(self):
         self.all_sprites = pg.sprite.Group()
         for y in range(CELL_QTY):
             for x in range(CELL_QTY):
@@ -34,48 +34,44 @@ class Chessboard:
                     cell.blit(symbol, (CELL_SIZE - 15, 5))
                 self.board.blit(cell, (x * CELL_SIZE, y * CELL_SIZE))
                 # Размещаем фигуры на доске
-                if y == 0:
-                    figure = POSITIONS[y][x]
-                    match figure:
-                        case "b_ro":
-                            rook = Rook(self.get_center_of_cell((x, y)), "b")
-                            self.all_sprites.add(rook)
-                        case "b_kn":
-                            knight = Knight(self.get_center_of_cell((x, y)), "b")
-                            self.all_sprites.add(knight)
-                        case "b_bi":
-                            bishop = Bishop(self.get_center_of_cell((x, y)), "b")
-                            self.all_sprites.add(bishop)
-                        case "b_qu":
-                            queen = Queen(self.get_center_of_cell((x, y)), "b")
-                            self.all_sprites.add(queen)
-                        case "b_ki":
-                            king = King(self.get_center_of_cell((x, y)), "b")
-                            self.all_sprites.add(king)
-                if y == 1:
-                    pawn = Pawn(self.get_center_of_cell((x, y)), "b")
-                    self.all_sprites.add(pawn)
-                if y == 6:
-                    pawn = Pawn(self.get_center_of_cell((x, y)), "w")
-                    self.all_sprites.add(pawn)
-                if y == 7:
-                    figure = POSITIONS[y][x]
-                    match figure:
-                        case "w_ro":
-                            rook = Rook(self.get_center_of_cell((x, y)), "w")
-                            self.all_sprites.add(rook)
-                        case "w_kn":
-                            knight = Knight(self.get_center_of_cell((x, y)), "w")
-                            self.all_sprites.add(knight)
-                        case "w_bi":
-                            bishop = Bishop(self.get_center_of_cell((x, y)), "w")
-                            self.all_sprites.add(bishop)
-                        case "w_qu":
-                            queen = Queen(self.get_center_of_cell((x, y)), "w")
-                            self.all_sprites.add(queen)
-                        case "w_ki":
-                            king = King(self.get_center_of_cell((x, y)), "w")
-                            self.all_sprites.add(king)
+                figure = POSITIONS[y][x]
+                match figure:
+                    case "b_ro":
+                        rook = Rook(self.get_center_of_cell((x, y)), "b")
+                        self.all_sprites.add(rook)
+                    case "b_kn":
+                        knight = Knight(self.get_center_of_cell((x, y)), "b")
+                        self.all_sprites.add(knight)
+                    case "b_bi":
+                        bishop = Bishop(self.get_center_of_cell((x, y)), "b")
+                        self.all_sprites.add(bishop)
+                    case "b_qu":
+                        queen = Queen(self.get_center_of_cell((x, y)), "b")
+                        self.all_sprites.add(queen)
+                    case "b_ki":
+                        king = King(self.get_center_of_cell((x, y)), "b")
+                        self.all_sprites.add(king)
+                    case "w_ro":
+                        rook = Rook(self.get_center_of_cell((x, y)), "w")
+                        self.all_sprites.add(rook)
+                    case "w_kn":
+                        knight = Knight(self.get_center_of_cell((x, y)), "w")
+                        self.all_sprites.add(knight)
+                    case "w_bi":
+                        bishop = Bishop(self.get_center_of_cell((x, y)), "w")
+                        self.all_sprites.add(bishop)
+                    case "w_qu":
+                        queen = Queen(self.get_center_of_cell((x, y)), "w")
+                        self.all_sprites.add(queen)
+                    case "w_ki":
+                        king = King(self.get_center_of_cell((x, y)), "w")
+                        self.all_sprites.add(king)
+                    case "b_pa":
+                        pawn = Pawn(self.get_center_of_cell((x, y)), "b")
+                        self.all_sprites.add(pawn)
+                    case "w_pa":
+                        pawn = Pawn(self.get_center_of_cell((x, y)), "w")
+                        self.all_sprites.add(pawn)
         self.__screen.blit(self.board,
                            (WINDOW_SIZE[0] - self.board.get_width(), WINDOW_SIZE[1] - self.board.get_height()))
 
@@ -91,6 +87,12 @@ class Chessboard:
         y = int(((coords[1]) * CELL_SIZE) + CELL_SIZE / 2)
         return (x, y)
 
+    def find_object(self, pos):
+        for object in self.all_sprites:
+            if self.get_square_from_pos(object.rect.center) == pos:
+                return object
+        
+
 
 class Figure(pg.sprite.Sprite):
     def __init__(self, pos, color):
@@ -99,19 +101,42 @@ class Figure(pg.sprite.Sprite):
         self.x = pos[0]
         self.y = pos[1]
         self.color = color
+        self.square_pos = Chessboard.get_square_from_pos(self, pos)
         self.has_moved = False
 
 
 class Pawn(Figure):
     def __init__(self, pos, color):
-        pg.sprite.Sprite.__init__(self)
         Figure.__init__(self, pos, color)
+        self.valid_moves = []
         if self.color == 'b':
             self.image = pg.image.load("assets\/figures\/b_pa.png").convert_alpha()
         else:
             self.image = pg.image.load("assets\/figures\/w_pa.png").convert_alpha()
         self.rect = self.image.get_rect(center=(self.x, self.y))
 
+
+    def get_valid_moves (self, chessboard):
+        valid_moves = []
+        if self.color == "b":
+            pass
+        if self.color == "w":
+            pos = chessboard.get_square_from_pos(self.pos)
+            y, x = pos[0], pos[1]
+            if self.has_moved == False and POSITIONS[y - 2][x] == '':
+                valid_moves.append((y-2, x))
+            if POSITIONS[y - 1][x] == '':
+                valid_moves.append((y - 1, x))
+        return valid_moves
+
+    def move(self, pos):
+        self.pos = pos
+        self.x = pos[0]
+        self.y = pos[1]
+        self.has_moved = True
+        self.square_pos = Chessboard.get_square_from_pos(self, pos)
+        self.rect.x += 80
+        self.rect.y -= 80
 
 class Rook(Figure):
     def __init__(self, pos, color):
