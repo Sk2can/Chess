@@ -15,8 +15,26 @@ class Chessboard:
                            (WINDOW_SIZE[0] - self.board.get_width(), WINDOW_SIZE[1] - self.board.get_height()))
         self.draw_playboard()
         self.all_sprites.draw(self.__screen)
+        self.flag_sprites = pg.sprite.Group()
         pg.display.update()
+        self.flags_mas = []
         self.all_sprites.update()
+        self.current_color = TURN
+
+    def update(self, screen):
+        self.draw_playboard()
+        self.flag_sprites = pg.sprite.Group()
+        self.flag_sprites.draw(screen)
+        self.all_sprites.draw(screen)
+        pg.display.update()
+
+    def reset(self, screen):
+        SELECTED_PIECE = None
+        self.flag_sprites = pg.sprite.Group()
+        self.draw_playboard()
+        self.flag_sprites.draw(screen)
+        self.all_sprites.draw(screen)
+        pg.display.update()
 
     def draw_playboard(self):
         self.all_sprites = pg.sprite.Group()
@@ -87,11 +105,20 @@ class Chessboard:
         y = int(((coords[1]) * CELL_SIZE) + CELL_SIZE / 2)
         return (x, y)
 
-    def find_object(self, pos):
+    def find_object(self, pos, chessboard, last_figure):
         for object in self.all_sprites:
+            if len(chessboard.flags_mas) != 0 and last_figure.color == chessboard.current_color:
+                return last_figure
             if self.get_square_from_pos(object.rect.center) == pos:
                 return object
-        
+
+
+class Flag(pg.sprite.Sprite):
+    def __init__(self, pos):
+        pg.sprite.Sprite.__init__(self)
+        self.image = pg.image.load(FLAG).convert_alpha()
+        self.pos = Chessboard.get_center_of_cell(self, pos)
+        self.rect = self.image.get_rect(center=(self.pos[1], self.pos[0]))
 
 
 class Figure(pg.sprite.Sprite):
@@ -103,6 +130,16 @@ class Figure(pg.sprite.Sprite):
         self.color = color
         self.square_pos = Chessboard.get_square_from_pos(self, pos)
         self.has_moved = False
+        self.valid_moves = []
+
+    def draw_valid_moves(self, chessboard, screen, figure):
+        chessboard.flag_sprites = pg.sprite.Group()
+        self.valid_moves = figure.get_valid_moves(chessboard)
+        for flag_pos in self.valid_moves:
+            chessboard.flag_sprites.add(Flag(flag_pos))
+            chessboard.flags_mas.append(flag_pos)
+        chessboard.flag_sprites.draw(screen)
+        pg.display.update()
 
 
 class Pawn(Figure):
@@ -110,21 +147,26 @@ class Pawn(Figure):
         Figure.__init__(self, pos, color)
         self.valid_moves = []
         if self.color == 'b':
-            self.image = pg.image.load("assets\/figures\/b_pa.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/b_pa.png")
         else:
-            self.image = pg.image.load("assets\/figures\/w_pa.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/w_pa.png")
         self.rect = self.image.get_rect(center=(self.x, self.y))
+        self.name = "_pa"
 
-
-    def get_valid_moves (self, chessboard):
+    def get_valid_moves(self, chessboard):
         valid_moves = []
         if self.color == "b":
-            pass
+            pos = chessboard.get_square_from_pos(self.pos)
+            y, x = pos[0], pos[1]
+            if self.has_moved == False and POSITIONS[y + 2][x] == '':
+                valid_moves.append((y + 2, x))
+            if POSITIONS[y + 1][x] == '':
+                valid_moves.append((y + 1, x))
         if self.color == "w":
             pos = chessboard.get_square_from_pos(self.pos)
             y, x = pos[0], pos[1]
             if self.has_moved == False and POSITIONS[y - 2][x] == '':
-                valid_moves.append((y-2, x))
+                valid_moves.append((y - 2, x))
             if POSITIONS[y - 1][x] == '':
                 valid_moves.append((y - 1, x))
         return valid_moves
@@ -138,14 +180,15 @@ class Pawn(Figure):
         self.rect.x += 80
         self.rect.y -= 80
 
+
 class Rook(Figure):
     def __init__(self, pos, color):
         pg.sprite.Sprite.__init__(self)
         Figure.__init__(self, pos, color)
         if self.color == 'b':
-            self.image = pg.image.load("assets\/figures\/b_ro.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/b_ro.png")
         else:
-            self.image = pg.image.load("assets\/figures\/w_ro.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/w_ro.png")
         self.rect = self.image.get_rect(center=(self.x, self.y))
 
 
@@ -154,9 +197,9 @@ class Bishop(Figure):
         pg.sprite.Sprite.__init__(self)
         Figure.__init__(self, pos, color)
         if self.color == 'b':
-            self.image = pg.image.load("assets\/figures\/b_bi.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/b_bi.png")
         else:
-            self.image = pg.image.load("assets\/figures\/w_bi.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/w_bi.png")
         self.rect = self.image.get_rect(center=(self.x, self.y))
 
 
@@ -165,9 +208,9 @@ class Queen(Figure):
         pg.sprite.Sprite.__init__(self)
         Figure.__init__(self, pos, color)
         if self.color == 'b':
-            self.image = pg.image.load("assets\/figures\/b_qu.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/b_qu.png")
         else:
-            self.image = pg.image.load("assets\/figures\/w_qu.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/w_qu.png")
         self.rect = self.image.get_rect(center=(self.x, self.y))
 
 
@@ -176,9 +219,9 @@ class King(Figure):
         pg.sprite.Sprite.__init__(self)
         Figure.__init__(self, pos, color)
         if self.color == 'b':
-            self.image = pg.image.load("assets\/figures\/b_ki.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/b_ki.png")
         else:
-            self.image = pg.image.load("assets\/figures\/w_ki.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/w_ki.png")
         self.rect = self.image.get_rect(center=(self.x, self.y))
 
 
@@ -187,7 +230,7 @@ class Knight(Figure):
         pg.sprite.Sprite.__init__(self)
         Figure.__init__(self, pos, color)
         if self.color == 'b':
-            self.image = pg.image.load("assets\/figures\/b_kn.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/b_kn.png")
         else:
-            self.image = pg.image.load("assets\/figures\/w_kn.png").convert_alpha()
+            self.image = pg.image.load("assets\/figures\/w_kn.png")
         self.rect = self.image.get_rect(center=(self.x, self.y))

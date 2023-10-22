@@ -19,39 +19,76 @@ if __name__ == '__main__':
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     coords = chessboard.get_square_from_pos(pg.mouse.get_pos())
-                    # print("Координаты клика: " + str(pg.mouse.get_pos()))
-                    # print("Номер клетки: " + str(chessboard.get_square_from_pos(pg.mouse.get_pos())))
-                    # print("Координаты центра клетки: " + str(
-                    #     chessboard.get_center_of_cell(coords)))
-                    # print("Фигура: " + str(POSITIONS[coords[0]][coords[1]]))
-
-                    if SELECTED_PIECE != None:
-                        figure = POSITIONS[coords[0]][coords[1]]
-                        new_pos = chessboard.get_square_from_pos(pg.mouse.get_pos())
-                        if new_pos not in SELECTED_PIECE.valid_moves:
-                            SELECTED_PIECE = None
+                    if chessboard.current_color == "w":
+                        SELECTED_PIECE = chessboard.find_object(chessboard.get_square_from_pos(pg.mouse.get_pos()),
+                                                                chessboard, SELECTED_PIECE)
+                        if ((SELECTED_PIECE == None and len(chessboard.flags_mas) != 0) or
+                                SELECTED_PIECE == None and len(chessboard.flags_mas) == 0 or
+                                (
+                                        len(chessboard.flags_mas) != 0 and SELECTED_PIECE != None and coords not in chessboard.flags_mas) or
+                                SELECTED_PIECE.color == "b"):
+                            chessboard.reset(screen)
+                            chessboard.flags_mas = []
                             break
-                        SELECTED_PIECE.move(new_pos)
-                        POSITIONS[coords[1]][coords[0]] = ''
-                        POSITIONS[new_pos[1]][new_pos[0]] = figure
-                        if SELECTED_PIECE.color == "w":
-                            TURN = "b"
-                        else:
-                            TURN = "w"
-                        print(*POSITIONS, sep='\n')
-                        print(SELECTED_PIECE.rect)
+                        if SELECTED_PIECE != None and coords in SELECTED_PIECE.valid_moves:
+                            SELECTED_PIECE = chessboard.find_object(
+                                chessboard.get_square_from_pos(SELECTED_PIECE.rect.center), chessboard, SELECTED_PIECE)
+                            old_pos = chessboard.get_square_from_pos(SELECTED_PIECE.rect.center)
+                            new_pos = chessboard.get_square_from_pos(pg.mouse.get_pos())
+                            if new_pos not in SELECTED_PIECE.valid_moves:
+                                chessboard.reset(screen)
+                                chessboard.flags_mas = []
+                                break
+                            POSITIONS[old_pos[0]][old_pos[1]] = ''
+                            POSITIONS[new_pos[0]][new_pos[1]] = SELECTED_PIECE.color + SELECTED_PIECE.name
+                            SELECTED_PIECE.move(new_pos)
+                            chessboard.update(screen)
+                            if SELECTED_PIECE.color == "w":
+                                chessboard.current_color = "b"
+                            else:
+                                chessboard.current_color = "w"
+                            chessboard.flags_mas = []
+                            continue
+                        if POSITIONS[coords[0]][coords[1]] != '':
+                            SELECTED_PIECE.draw_valid_moves(chessboard, screen, SELECTED_PIECE)
+                        if POSITIONS[coords[0]][coords[1]] == '' and SELECTED_PIECE != None:
+                            SELECTED_PIECE = None
+                            chessboard.update(screen)
+                    if chessboard.current_color == "b":
+                        SELECTED_PIECE = chessboard.find_object(chessboard.get_square_from_pos(pg.mouse.get_pos()),
+                                                                chessboard, SELECTED_PIECE)
+                        if ((SELECTED_PIECE == None and len(chessboard.flags_mas) != 0) or
+                                SELECTED_PIECE == None and len(chessboard.flags_mas) == 0 or
+                                (
+                                        len(chessboard.flags_mas) != 0 and SELECTED_PIECE != None and coords not in chessboard.flags_mas) or
+                                SELECTED_PIECE.color == "w"):
+                            chessboard.reset(screen)
+                            chessboard.flags_mas = []
+                            break
+                        if SELECTED_PIECE != None and coords in SELECTED_PIECE.valid_moves:
+                            SELECTED_PIECE = chessboard.find_object(
+                                chessboard.get_square_from_pos(SELECTED_PIECE.rect.center), chessboard, SELECTED_PIECE)
+                            old_pos = chessboard.get_square_from_pos(SELECTED_PIECE.rect.center)
+                            new_pos = chessboard.get_square_from_pos(pg.mouse.get_pos())
+                            if new_pos not in SELECTED_PIECE.valid_moves:
+                                chessboard.reset(screen)
+                                chessboard.flags_mas = []
+                                break
+                            POSITIONS[old_pos[0]][old_pos[1]] = ''
+                            POSITIONS[new_pos[0]][new_pos[1]] = SELECTED_PIECE.color + SELECTED_PIECE.name
+                            SELECTED_PIECE.move(new_pos)
+                            chessboard.update(screen)
+                            if SELECTED_PIECE.color == "b":
+                                chessboard.current_color = "w"
+                            else:
+                                chessboard.current_color = "b"
+                            chessboard.flags_mas = []
+                            continue
+                        if POSITIONS[coords[0]][coords[1]] != '':
+                            SELECTED_PIECE.draw_valid_moves(chessboard, screen, SELECTED_PIECE)
+                        if POSITIONS[coords[0]][coords[1]] == '' and SELECTED_PIECE != None:
+                            SELECTED_PIECE = None
+                            chessboard.update(screen)
 
-                        continue
-
-                    if POSITIONS[coords[0]][coords[1]] == "w_pa":
-                        pawn = chessboard.find_object(chessboard.get_square_from_pos(pg.mouse.get_pos()))
-                        pawn.valid_moves = Pawn.get_valid_moves(pawn, chessboard)
-                        pawn.move(pawn.valid_moves[0])
-                        POSITIONS[coords[0]][coords[1]] = ''
-                        POSITIONS[pawn.valid_moves[0][0]][pawn.valid_moves[0][1]] = 'w_pa'
-
-                        chessboard.draw_playboard()
-                        chessboard.all_sprites.draw(screen)
-                        pg.display.update()
-            # print(pawn.square_pos)
-            # print(str(Pawn.get_valid_moves(pawn, chessboard)) + "\n")
+            chessboard.draw_playboard()
+            chessboard.all_sprites.draw(screen)
