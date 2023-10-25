@@ -21,6 +21,7 @@ class Chessboard:
         self.flags_mas = []
         self.all_sprites.update()
         self.current_color = TURN
+
     def init_figures(self):
         self.all_sprites = pg.sprite.Group()
         for y in range(CELL_QTY):
@@ -108,13 +109,17 @@ class Chessboard:
         y = int(((coords[1]) * CELL_SIZE) + CELL_SIZE / 2)
         return (y, x)
 
-    def find_object(self, pos, chessboard, last_figure):
+    def find_object(self, pos, last_figure):
         for object in self.all_sprites:
-            if len(chessboard.flags_mas) != 0 and last_figure.color == chessboard.current_color:
+            if len(self.flags_mas) != 0 and last_figure.color == self.current_color:
                 return last_figure
             if self.get_square_from_pos(object.rect.center) == pos:
                 return object
 
+    def find_object_on_coords(self, pos):
+        for object in self.all_sprites:
+            if object.square_pos == pos:
+                return object
 
 class Flag(pg.sprite.Sprite):
     def __init__(self, pos):
@@ -136,7 +141,6 @@ class Figure(pg.sprite.Sprite):
         self.has_moved = False
         self.valid_moves = []
 
-
 class Pawn(Figure):
     def __init__(self, pos, color):
         Figure.__init__(self, pos, color)
@@ -156,6 +160,16 @@ class Pawn(Figure):
                 valid_moves.append((y + 2, x))
             if POSITIONS[y + 1][x] == '':
                 valid_moves.append((y + 1, x))
+            try:
+                if POSITIONS[y + 1][x - 1] != '' and POSITIONS[y + 1][x - 1][0] == "w":
+                    valid_moves.append((y + 1, x - 1))
+            except IndexError:
+                pass
+            try:
+                if POSITIONS[y + 1][x + 1] != '' and POSITIONS[y + 1][x + 1][0] == "w":
+                    valid_moves.append((y + 1, x + 1))
+            except IndexError:
+                pass
         if self.color == "w":
             pos = chessboard.get_square_from_pos((self.pos[1],self.pos[0]))
             y, x = pos[0], pos[1]
@@ -163,6 +177,16 @@ class Pawn(Figure):
                 valid_moves.append((y - 2, x))
             if POSITIONS[y - 1][x] == '':
                 valid_moves.append((y - 1, x))
+            try:
+                if POSITIONS[y - 1][x - 1] != '' and POSITIONS[y - 1][x - 1][0] == "b":
+                    valid_moves.append((y - 1, x - 1))
+            except IndexError:
+                pass
+            try:
+                if POSITIONS[y - 1][x + 1] != '' and POSITIONS[y - 1][x + 1][0] == "b":
+                    valid_moves.append((y - 1, x + 1))
+            except IndexError:
+                pass
         return valid_moves
 
     def draw_valid_moves(self, chessboard, screen):
@@ -174,13 +198,27 @@ class Pawn(Figure):
         chessboard.flag_sprites.draw(screen)
         pg.display.update()
 
-    def move(self, new_pos, chessboard):
+    def move(self, new_pos, chessboard, SELECTED_PIECE):
+        if POSITIONS[new_pos[0]][new_pos[1]] != '' and POSITIONS[new_pos[0]][new_pos[1]][0] != self.color:
+            self.attack(chessboard.find_object_on_coords(new_pos), new_pos)
         n = self.square_pos[0] - new_pos[0]
         self.has_moved = True
         self.rect.y -= 80 * n
         self.square_pos = new_pos
         self.pos = chessboard.get_center_of_cell(self.square_pos)
+        if self.color == 'w' and self.square_pos[0] == 0 or self.color == 'b' and self.square_pos[0] == 7:
+            self.kill()
+            SELECTED_PIECE.name = "_qu"
+            queen = Queen(chessboard.get_center_of_cell((self.square_pos[0], self.square_pos[1])), self.color)
+            chessboard.all_sprites.add(queen)
         self.valid_moves = []
+
+    def attack(self, attacked_figure, new_pos):
+        attacked_figure.kill()
+        n = self.square_pos[1] - new_pos[1]
+        self.rect.x -= 80 * n
+
+
 
 
 class Rook(Figure):

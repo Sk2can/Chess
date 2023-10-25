@@ -19,8 +19,7 @@ if __name__ == '__main__':
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     coords = chessboard.get_square_from_pos((pg.mouse.get_pos()[1],pg.mouse.get_pos()[0]))
-                    SELECTED_PIECE = chessboard.find_object(chessboard.get_square_from_pos(pg.mouse.get_pos()),
-                                                            chessboard, SELECTED_PIECE)
+                    SELECTED_PIECE = chessboard.find_object(chessboard.get_square_from_pos(pg.mouse.get_pos()), SELECTED_PIECE)
                     if chessboard.current_color == "w":
                         if ((SELECTED_PIECE == None and len(chessboard.flags_mas) != 0) or
                                 SELECTED_PIECE == None and len(chessboard.flags_mas) == 0 or
@@ -43,9 +42,9 @@ if __name__ == '__main__':
                                 chessboard.reset(screen)
                                 chessboard.flags_mas = []
                                 break
+                            SELECTED_PIECE.move(new_pos, chessboard, SELECTED_PIECE)
                             POSITIONS[old_pos[0]][old_pos[1]] = ''
                             POSITIONS[new_pos[0]][new_pos[1]] = SELECTED_PIECE.color + SELECTED_PIECE.name
-                            SELECTED_PIECE.move(new_pos, chessboard)
                             chessboard.update(screen)
                             if SELECTED_PIECE.color == "w":
                                 chessboard.current_color = "b"
@@ -81,9 +80,9 @@ if __name__ == '__main__':
                                 chessboard.reset(screen)
                                 chessboard.flags_mas = []
                                 break
+                            SELECTED_PIECE.move(new_pos, chessboard, SELECTED_PIECE)
                             POSITIONS[old_pos[0]][old_pos[1]] = ''
                             POSITIONS[new_pos[0]][new_pos[1]] = SELECTED_PIECE.color + SELECTED_PIECE.name
-                            SELECTED_PIECE.move(new_pos, chessboard)
                             chessboard.update(screen)
                             if SELECTED_PIECE.color == "b":
                                 chessboard.current_color = "w"
@@ -96,6 +95,5 @@ if __name__ == '__main__':
                         if POSITIONS[coords[0]][coords[1]] == '' and SELECTED_PIECE != None:
                             SELECTED_PIECE = None
                             chessboard.update(screen)
-
             chessboard.draw_playboard()
             chessboard.all_sprites.draw(screen)
