@@ -319,7 +319,6 @@ class Rook(Figure):
         self.rect.x -= 80 * m
 
 
-
 class Bishop(Figure):
     def __init__(self, pos, color):
         pg.sprite.Sprite.__init__(self)
@@ -329,6 +328,93 @@ class Bishop(Figure):
         else:
             self.image = pg.image.load("assets\/figures\/w_bi.png")
         self.rect = self.image.get_rect(center=(self.pos[0], self.pos[1]))
+        self.name = "_bi"
+
+    def get_valid_moves(self, chessboard):
+        valid_moves = []
+        pos = chessboard.get_square_from_pos((self.pos[1], self.pos[0]))
+        y, x = pos[0], pos[1]
+        cond1, cond2, cond3, cond4 = False, False, False, False
+        for i in range(1, 8):
+            try:
+                if cond1 == False:
+                    if POSITIONS[y + i][x + i] == '':
+                        valid_moves.append((y + i, x + i))
+                    elif POSITIONS[y + i][x + i][0] == self.color:
+                        cond1 = True
+                    elif POSITIONS[y + i][x + i][0] != self.color:
+                        valid_moves.append((y + i, x + i))
+                        cond1 = True
+            except IndexError:
+                pass
+
+            try:
+                if cond2 == False:
+                    if POSITIONS[y - i][x - i] == '':
+                        valid_moves.append((y - i, x - i))
+                    elif POSITIONS[y - i][x - i][0] == self.color:
+                        cond2 = True
+                    elif POSITIONS[y - i][x - i][0] != self.color:
+                        valid_moves.append((y - i, x - i))
+                        cond2 = True
+            except IndexError:
+                pass
+
+            try:
+                if cond3 == False:
+                    if POSITIONS[y - i][x + i] == '':
+                        valid_moves.append((y - i, x + i))
+                    elif POSITIONS[y - i][x + i][0] == self.color:
+                        cond3 = True
+                    elif POSITIONS[y - i][x + i][0] != self.color:
+                        valid_moves.append((y - i, x + i))
+                        cond3 = True
+            except IndexError:
+                pass
+
+            try:
+                if cond4 == False:
+                    if POSITIONS[y + i][x - i] == '':
+                        valid_moves.append((y + i, x - i))
+                    elif POSITIONS[y + i][x - i][0] == self.color:
+                        cond4 = True
+                    elif POSITIONS[y + i][x - i][0] != self.color:
+                        valid_moves.append((y + i, x - i))
+                        cond4 = True
+            except IndexError:
+                pass
+        return valid_moves
+
+    def draw_valid_moves(self, chessboard, screen):
+        chessboard.flag_sprites = pg.sprite.Group()
+        self.valid_moves = self.get_valid_moves(chessboard)
+        for flag_pos in self.valid_moves:
+            chessboard.flag_sprites.add(Flag(flag_pos))
+            chessboard.flags_mas.append(flag_pos)
+        chessboard.flag_sprites.draw(screen)
+        pg.display.update()
+
+    def move(self, new_pos, chessboard, SELECTED_PIECE):
+        is_attack = False
+        if POSITIONS[new_pos[0]][new_pos[1]] != '' and POSITIONS[new_pos[0]][new_pos[1]][0] != self.color:
+            self.attack(chessboard.find_object_on_coords(new_pos), new_pos)
+            is_attack = True
+        n = self.square_pos[0] - new_pos[0]
+        m = self.square_pos[1] - new_pos[1]
+        self.has_moved = True
+        if is_attack == False:
+            self.rect.y -= 80 * n
+            self.rect.x -= 80 * m
+        self.square_pos = new_pos
+        self.pos = chessboard.get_center_of_cell(self.square_pos)
+        self.valid_moves = []
+
+    def attack(self, attacked_figure, new_pos):
+        attacked_figure.kill()
+        n = self.square_pos[0] - new_pos[0]
+        m = self.square_pos[1] - new_pos[1]
+        self.rect.y -= 80 * n
+        self.rect.x -= 80 * m
 
 
 class Queen(Figure):
@@ -340,6 +426,141 @@ class Queen(Figure):
         else:
             self.image = pg.image.load("assets\/figures\/w_qu.png")
         self.rect = self.image.get_rect(center=(self.pos[0], self.pos[1]))
+        self.name = "_qu"
+
+    def get_valid_moves(self, chessboard):
+        valid_moves = []
+        pos = chessboard.get_square_from_pos((self.pos[1], self.pos[0]))
+        y, x = pos[0], pos[1]
+        cond1, cond2, cond3, cond4, cond5, cond6, cond7, cond8 = False, False, False, False, False, False, False, False
+        for i in range(1, 8):
+            try:
+                if cond1 == False:
+                    if POSITIONS[y + i][x] == '':
+                        valid_moves.append((y + i, x))
+                    elif POSITIONS[y + i][x][0] == self.color:
+                        cond1 = True
+                    elif POSITIONS[y + i][x][0] != self.color:
+                        valid_moves.append((y + i, x))
+                        cond1 = True
+            except IndexError:
+                pass
+
+            try:
+                if cond2 == False:
+                    if POSITIONS[y - i][x] == '':
+                        valid_moves.append((y - i, x))
+                    elif POSITIONS[y - i][x][0] == self.color:
+                        cond2 = True
+                    elif POSITIONS[y - i][x][0] != self.color:
+                        valid_moves.append((y - i, x))
+                        cond2 = True
+            except IndexError:
+                pass
+
+            try:
+                if cond3 == False:
+                    if POSITIONS[y][x + i] == '':
+                        valid_moves.append((y, x + i))
+                    elif POSITIONS[y][x + i][0] == self.color:
+                        cond3 = True
+                    elif POSITIONS[y][x + i][0] != self.color:
+                        valid_moves.append((y, x + i))
+                        cond3 = True
+            except IndexError:
+                pass
+
+            try:
+                if cond4 == False:
+                    if POSITIONS[y][x - i] == '':
+                        valid_moves.append((y, x - i))
+                    elif POSITIONS[y][x - i][0] == self.color:
+                        cond4 = True
+                    elif POSITIONS[y][x - i][0] != self.color:
+                        valid_moves.append((y, x - i))
+                        cond4 = True
+            except IndexError:
+                pass
+
+            try:
+                if cond5 == False:
+                    if POSITIONS[y + i][x + i] == '':
+                        valid_moves.append((y + i, x + i))
+                    elif POSITIONS[y + i][x + i][0] == self.color:
+                        cond5 = True
+                    elif POSITIONS[y + i][x + i][0] != self.color:
+                        valid_moves.append((y + i, x + i))
+                        cond5 = True
+            except IndexError:
+                pass
+
+            try:
+                if cond6 == False:
+                    if POSITIONS[y - i][x - i] == '':
+                        valid_moves.append((y - i, x - i))
+                    elif POSITIONS[y - i][x - i][0] == self.color:
+                        cond6 = True
+                    elif POSITIONS[y - i][x - i][0] != self.color:
+                        valid_moves.append((y - i, x - i))
+                        cond6 = True
+            except IndexError:
+                pass
+
+            try:
+                if cond7 == False:
+                    if POSITIONS[y - i][x + i] == '':
+                        valid_moves.append((y - i, x + i))
+                    elif POSITIONS[y - i][x + i][0] == self.color:
+                        cond7 = True
+                    elif POSITIONS[y - i][x + i][0] != self.color:
+                        valid_moves.append((y - i, x + i))
+                        cond7 = True
+            except IndexError:
+                pass
+
+            try:
+                if cond8 == False:
+                    if POSITIONS[y + i][x - i] == '':
+                        valid_moves.append((y + i, x - i))
+                    elif POSITIONS[y + i][x - i][0] == self.color:
+                        cond8 = True
+                    elif POSITIONS[y + i][x - i][0] != self.color:
+                        valid_moves.append((y + i, x - i))
+                        cond8 = True
+            except IndexError:
+                pass
+        return valid_moves
+
+    def draw_valid_moves(self, chessboard, screen):
+        chessboard.flag_sprites = pg.sprite.Group()
+        self.valid_moves = self.get_valid_moves(chessboard)
+        for flag_pos in self.valid_moves:
+            chessboard.flag_sprites.add(Flag(flag_pos))
+            chessboard.flags_mas.append(flag_pos)
+        chessboard.flag_sprites.draw(screen)
+        pg.display.update()
+
+    def move(self, new_pos, chessboard, SELECTED_PIECE):
+        is_attack = False
+        if POSITIONS[new_pos[0]][new_pos[1]] != '' and POSITIONS[new_pos[0]][new_pos[1]][0] != self.color:
+            self.attack(chessboard.find_object_on_coords(new_pos), new_pos)
+            is_attack = True
+        n = self.square_pos[0] - new_pos[0]
+        m = self.square_pos[1] - new_pos[1]
+        self.has_moved = True
+        if is_attack == False:
+            self.rect.y -= 80 * n
+            self.rect.x -= 80 * m
+        self.square_pos = new_pos
+        self.pos = chessboard.get_center_of_cell(self.square_pos)
+        self.valid_moves = []
+
+    def attack(self, attacked_figure, new_pos):
+        attacked_figure.kill()
+        n = self.square_pos[0] - new_pos[0]
+        m = self.square_pos[1] - new_pos[1]
+        self.rect.y -= 80 * n
+        self.rect.x -= 80 * m
 
 
 class King(Figure):
@@ -362,3 +583,81 @@ class Knight(Figure):
         else:
             self.image = pg.image.load("assets\/figures\/w_kn.png")
         self.rect = self.image.get_rect(center=(self.pos[0], self.pos[1]))
+        self.name = "_kn"
+
+    def get_valid_moves(self, chessboard):
+        valid_moves = []
+        pos = chessboard.get_square_from_pos((self.pos[1], self.pos[0]))
+        y, x = pos[0], pos[1]
+        try:
+            if POSITIONS[y - 2][x - 1] == '' or POSITIONS[y - 2][x - 1][0] != self.color:
+                valid_moves.append((y - 2, x - 1))
+        except IndexError:
+            pass
+        try:
+            if POSITIONS[y - 2][x + 1] == '' or POSITIONS[y - 2][x + 1][0] != self.color:
+                valid_moves.append((y - 2, x + 1))
+        except IndexError:
+            pass
+        try:
+            if POSITIONS[y + 2][x - 1] == '' or POSITIONS[y + 2][x - 1][0] != self.color:
+                valid_moves.append((y + 2, x - 1))
+        except IndexError:
+            pass
+        try:
+            if POSITIONS[y + 2][x + 1] == '' or POSITIONS[y + 2][x + 1][0] != self.color:
+                valid_moves.append((y + 2, x + 1))
+        except IndexError:
+            pass
+        try:
+            if POSITIONS[y - 1][x - 2] == '' or POSITIONS[y - 1][x - 2][0] != self.color:
+                valid_moves.append((y - 1, x - 2))
+        except IndexError:
+            pass
+        try:
+            if POSITIONS[y - 1][x + 2] == '' or POSITIONS[y - 1][x + 2][0] != self.color:
+                valid_moves.append((y - 1, x + 2))
+        except IndexError:
+            pass
+        try:
+            if POSITIONS[y + 1][x - 2] == '' or POSITIONS[y + 1][x - 2][0] != self.color:
+                valid_moves.append((y + 1, x - 2))
+        except IndexError:
+            pass
+        try:
+            if POSITIONS[y + 1][x + 2] == '' or POSITIONS[y + 1][x + 2][0] != self.color:
+                valid_moves.append((y + 1, x + 2))
+        except IndexError:
+            pass
+        return valid_moves
+
+    def draw_valid_moves(self, chessboard, screen):
+        chessboard.flag_sprites = pg.sprite.Group()
+        self.valid_moves = self.get_valid_moves(chessboard)
+        for flag_pos in self.valid_moves:
+            chessboard.flag_sprites.add(Flag(flag_pos))
+            chessboard.flags_mas.append(flag_pos)
+        chessboard.flag_sprites.draw(screen)
+        pg.display.update()
+
+    def move(self, new_pos, chessboard, SELECTED_PIECE):
+        is_attack = False
+        if POSITIONS[new_pos[0]][new_pos[1]] != '' and POSITIONS[new_pos[0]][new_pos[1]][0] != self.color:
+            self.attack(chessboard.find_object_on_coords(new_pos), new_pos)
+            is_attack = True
+        n = self.square_pos[0] - new_pos[0]
+        m = self.square_pos[1] - new_pos[1]
+        self.has_moved = True
+        if is_attack == False:
+            self.rect.y -= 80 * n
+            self.rect.x -= 80 * m
+        self.square_pos = new_pos
+        self.pos = chessboard.get_center_of_cell(self.square_pos)
+        self.valid_moves = []
+
+    def attack(self, attacked_figure, new_pos):
+        attacked_figure.kill()
+        n = self.square_pos[0] - new_pos[0]
+        m = self.square_pos[1] - new_pos[1]
+        self.rect.y -= 80 * n
+        self.rect.x -= 80 * m
