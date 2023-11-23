@@ -1,5 +1,4 @@
 from math import ceil
-
 import pygame as pg
 from game_config import *
 
@@ -21,6 +20,19 @@ class Chessboard:
         self.flags_mas = []
         self.all_sprites.update()
         self.current_color = TURN
+
+    def print(self):
+        figures = {'' : '', 'b_ki' : '♔', 'b_qu' : '♕', 'b_ro' : '♖', 'b_bi' : '♗', 'b_kn' : '♘', 'b_pa' : '♙',
+                   'w_ki' : '♚', 'w_qu' : '♛', 'w_ro' : '♜', 'w_bi' : '♝', 'w_kn' : '♞', 'w_pa' : '♟︎'}
+        for y in range(8):
+            line = ""
+            for x in range(8):
+                if str(figures[POSITIONS[y][x]]) == '':
+                    line += ' '
+                    continue
+                line += (str(figures[POSITIONS[y][x]]))
+            print(line)
+        print()
 
     def init_figures(self):
         self.all_sprites = pg.sprite.Group()
@@ -142,6 +154,52 @@ class Figure(pg.sprite.Sprite):
         self.has_moved = False
         self.valid_moves = []
 
+    def is_checked(self, chessboard, is_fake):
+        flag = False
+        kings_pos = []
+        for i in range(0, 8):
+            for j in range(0, 8):
+                if POSITIONS[i][j] == "w_ki" or POSITIONS[i][j] == "b_ki":
+                    kings_pos.append((i, j))
+        for figure in chessboard.all_sprites:
+            moves = figure.get_valid_moves(chessboard)
+            if kings_pos[0] in moves:
+                for king in chessboard.all_sprites:
+                    if king.square_pos == kings_pos[0]:
+                        if is_fake == False:
+                            king.image = pg.image.load(f"assets\/figures\/{king.color}_ki_checked.png")
+                        return king.color
+            elif kings_pos[1] in moves:
+                for king in chessboard.all_sprites:
+                    if king.square_pos == kings_pos[1]:
+                        if is_fake == False:
+                            king.image = pg.image.load(f"assets\/figures\/{king.color}_ki_checked.png")
+                        return king.color
+
+        if flag == False:
+            for king in chessboard.all_sprites:
+                if king.square_pos in kings_pos:
+                    king.image = pg.image.load(f"assets\/figures\/{king.color}_ki.png")
+
+    def forbidden_move_ban(self, valid_moves, chessboard):
+        fake_Positions = POSITIONS
+        current_figure = fake_Positions[self.square_pos[0]][self.square_pos[1]]
+        default_pos = (self.square_pos[0], self.square_pos[1])
+        banned_moves = []
+        for move in valid_moves:
+            fake_Positions[self.square_pos[0]][self.square_pos[1]] = ''
+            fake_Positions[move[0]][move[1]] = current_figure
+            if self.is_checked(chessboard, True) != TURN and self.is_checked(chessboard, True) != None:
+                try:
+                    banned_moves.append(move)
+                except:
+                    pass
+            fake_Positions[move[0]][move[1]] = ''
+            fake_Positions[default_pos[0]][default_pos[1]] = current_figure
+        for move in banned_moves:
+            valid_moves.remove(move)
+        return valid_moves
+
 
 class Pawn(Figure):
     def __init__(self, pos, color):
@@ -158,10 +216,10 @@ class Pawn(Figure):
         if self.color == "b":
             pos = chessboard.get_square_from_pos((self.pos[1], self.pos[0]))
             y, x = pos[0], pos[1]
-            if self.has_moved == False and POSITIONS[y + 2][x] == '':
-                valid_moves.append((y + 2, x))
             if POSITIONS[y + 1][x] == '':
                 valid_moves.append((y + 1, x))
+                if self.has_moved == False and POSITIONS[y + 2][x] == '':
+                    valid_moves.append((y + 2, x))
             try:
                 if POSITIONS[y + 1][x - 1] != '' and POSITIONS[y + 1][x - 1][0] == "w":
                     valid_moves.append((y + 1, x - 1))
@@ -175,10 +233,10 @@ class Pawn(Figure):
         if self.color == "w":
             pos = chessboard.get_square_from_pos((self.pos[1], self.pos[0]))
             y, x = pos[0], pos[1]
-            if self.has_moved == False and POSITIONS[y - 2][x] == '':
-                valid_moves.append((y - 2, x))
             if POSITIONS[y - 1][x] == '':
                 valid_moves.append((y - 1, x))
+                if self.has_moved == False and POSITIONS[y - 2][x] == '':
+                    valid_moves.append((y - 2, x))
             try:
                 if POSITIONS[y - 1][x - 1] != '' and POSITIONS[y - 1][x - 1][0] == "b":
                     valid_moves.append((y - 1, x - 1))
@@ -194,6 +252,7 @@ class Pawn(Figure):
     def draw_valid_moves(self, chessboard, screen):
         chessboard.flag_sprites = pg.sprite.Group()
         self.valid_moves = self.get_valid_moves(chessboard)
+        # self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         for flag_pos in self.valid_moves:
             chessboard.flag_sprites.add(Flag(flag_pos))
             chessboard.flags_mas.append(flag_pos)
@@ -214,6 +273,7 @@ class Pawn(Figure):
             queen = Queen(chessboard.get_center_of_cell((self.square_pos[0], self.square_pos[1])), self.color)
             chessboard.all_sprites.add(queen)
         self.valid_moves = []
+        # self.is_checked(chessboard, False)
 
     def attack(self, attacked_figure, new_pos):
         attacked_figure.kill()
@@ -240,7 +300,7 @@ class Rook(Figure):
         for i in range(1, 8):
             try:
                 if cond1 == False:
-                    if POSITIONS[y + i][x] == '' :
+                    if POSITIONS[y + i][x] == '':
                         valid_moves.append((y + i, x))
                     elif POSITIONS[y + i][x][0] == self.color:
                         cond1 = True
@@ -290,6 +350,7 @@ class Rook(Figure):
     def draw_valid_moves(self, chessboard, screen):
         chessboard.flag_sprites = pg.sprite.Group()
         self.valid_moves = self.get_valid_moves(chessboard)
+        # self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         for flag_pos in self.valid_moves:
             chessboard.flag_sprites.add(Flag(flag_pos))
             chessboard.flags_mas.append(flag_pos)
@@ -310,6 +371,7 @@ class Rook(Figure):
         self.square_pos = new_pos
         self.pos = chessboard.get_center_of_cell(self.square_pos)
         self.valid_moves = []
+        # self.is_checked(chessboard, False)
 
     def attack(self, attacked_figure, new_pos):
         attacked_figure.kill()
@@ -335,6 +397,7 @@ class Bishop(Figure):
         pos = chessboard.get_square_from_pos((self.pos[1], self.pos[0]))
         y, x = pos[0], pos[1]
         cond1, cond2, cond3, cond4 = False, False, False, False
+        # self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         for i in range(1, 8):
             try:
                 if cond1 == False:
@@ -408,6 +471,7 @@ class Bishop(Figure):
         self.square_pos = new_pos
         self.pos = chessboard.get_center_of_cell(self.square_pos)
         self.valid_moves = []
+        # self.is_checked(chessboard, False)
 
     def attack(self, attacked_figure, new_pos):
         attacked_figure.kill()
@@ -433,6 +497,7 @@ class Queen(Figure):
         pos = chessboard.get_square_from_pos((self.pos[1], self.pos[0]))
         y, x = pos[0], pos[1]
         cond1, cond2, cond3, cond4, cond5, cond6, cond7, cond8 = False, False, False, False, False, False, False, False
+        # self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         for i in range(1, 8):
             try:
                 if cond1 == False:
@@ -543,7 +608,7 @@ class Queen(Figure):
     def move(self, new_pos, chessboard, SELECTED_PIECE):
         is_attack = False
         if POSITIONS[new_pos[0]][new_pos[1]] != '' and POSITIONS[new_pos[0]][new_pos[1]][0] != self.color:
-            self.attack(chessboard.find_object_on_coords(new_pos), new_pos)
+            self.attack(chessboard.find_object_on_coords(new_pos), new_pos, chessboard)
             is_attack = True
         n = self.square_pos[0] - new_pos[0]
         m = self.square_pos[1] - new_pos[1]
@@ -554,13 +619,15 @@ class Queen(Figure):
         self.square_pos = new_pos
         self.pos = chessboard.get_center_of_cell(self.square_pos)
         self.valid_moves = []
+        # self.is_checked(chessboard, False)
 
-    def attack(self, attacked_figure, new_pos):
+    def attack(self, attacked_figure, new_pos, chessboard):
         attacked_figure.kill()
         n = self.square_pos[0] - new_pos[0]
         m = self.square_pos[1] - new_pos[1]
         self.rect.y -= 80 * n
         self.rect.x -= 80 * m
+        # self.is_checked(chessboard, False)
 
 
 class King(Figure):
@@ -578,6 +645,7 @@ class King(Figure):
         valid_moves = []
         pos = chessboard.get_square_from_pos((self.pos[1], self.pos[0]))
         y, x = pos[0], pos[1]
+        # self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         try:
             if POSITIONS[y + 1][x + 1] == '':
                 valid_moves.append((y + 1, x + 1))
@@ -653,7 +721,7 @@ class King(Figure):
     def move(self, new_pos, chessboard, SELECTED_PIECE):
         is_attack = False
         if POSITIONS[new_pos[0]][new_pos[1]] != '' and POSITIONS[new_pos[0]][new_pos[1]][0] != self.color:
-            self.attack(chessboard.find_object_on_coords(new_pos), new_pos)
+            self.attack(chessboard.find_object_on_coords(new_pos), new_pos, chessboard)
             is_attack = True
         n = self.square_pos[0] - new_pos[0]
         m = self.square_pos[1] - new_pos[1]
@@ -664,13 +732,15 @@ class King(Figure):
         self.square_pos = new_pos
         self.pos = chessboard.get_center_of_cell(self.square_pos)
         self.valid_moves = []
+        # self.is_checked(chessboard, False)
 
-    def attack(self, attacked_figure, new_pos):
+    def attack(self, attacked_figure, new_pos, chessboard):
         attacked_figure.kill()
         n = self.square_pos[0] - new_pos[0]
         m = self.square_pos[1] - new_pos[1]
         self.rect.y -= 80 * n
         self.rect.x -= 80 * m
+        # self.is_checked(chessboard, False)
 
 
 class Knight(Figure):
@@ -688,6 +758,7 @@ class Knight(Figure):
         valid_moves = []
         pos = chessboard.get_square_from_pos((self.pos[1], self.pos[0]))
         y, x = pos[0], pos[1]
+        # self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         try:
             if POSITIONS[y - 2][x - 1] == '' or POSITIONS[y - 2][x - 1][0] != self.color:
                 valid_moves.append((y - 2, x - 1))
@@ -742,7 +813,7 @@ class Knight(Figure):
     def move(self, new_pos, chessboard, SELECTED_PIECE):
         is_attack = False
         if POSITIONS[new_pos[0]][new_pos[1]] != '' and POSITIONS[new_pos[0]][new_pos[1]][0] != self.color:
-            self.attack(chessboard.find_object_on_coords(new_pos), new_pos)
+            self.attack(chessboard.find_object_on_coords(new_pos), new_pos, chessboard)
             is_attack = True
         n = self.square_pos[0] - new_pos[0]
         m = self.square_pos[1] - new_pos[1]
@@ -753,10 +824,12 @@ class Knight(Figure):
         self.square_pos = new_pos
         self.pos = chessboard.get_center_of_cell(self.square_pos)
         self.valid_moves = []
+        # self.is_checked(chessboard, False)
 
-    def attack(self, attacked_figure, new_pos):
+    def attack(self, attacked_figure, new_pos, chessboard):
         attacked_figure.kill()
         n = self.square_pos[0] - new_pos[0]
         m = self.square_pos[1] - new_pos[1]
         self.rect.y -= 80 * n
         self.rect.x -= 80 * m
+        # self.is_checked(chessboard, False)

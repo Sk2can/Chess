@@ -19,7 +19,6 @@ if __name__ == '__main__':
                 run = False
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    print(np.matrix(POSITIONS))
                     coords = chessboard.get_square_from_pos((pg.mouse.get_pos()[1], pg.mouse.get_pos()[0]))
                     SELECTED_PIECE = chessboard.find_object(chessboard.get_square_from_pos(pg.mouse.get_pos()),SELECTED_PIECE)
 
@@ -48,12 +47,14 @@ if __name__ == '__main__':
                             SELECTED_PIECE.move(new_pos, chessboard, SELECTED_PIECE)
                             POSITIONS[old_pos[0]][old_pos[1]] = ''
                             POSITIONS[new_pos[0]][new_pos[1]] = SELECTED_PIECE.color + SELECTED_PIECE.name
+                            SELECTED_PIECE.is_checked(chessboard, False)
                             chessboard.update(screen)
                             if SELECTED_PIECE.color == "w":
                                 chessboard.current_color = "b"
                             else:
                                 chessboard.current_color = "w"
                             chessboard.flags_mas = []
+                            chessboard.print()
                             continue
                         if POSITIONS[coords[0]][coords[1]] != '':
                             SELECTED_PIECE.draw_valid_moves(chessboard, screen)
@@ -86,18 +87,19 @@ if __name__ == '__main__':
                             SELECTED_PIECE.move(new_pos, chessboard, SELECTED_PIECE)
                             POSITIONS[old_pos[0]][old_pos[1]] = ''
                             POSITIONS[new_pos[0]][new_pos[1]] = SELECTED_PIECE.color + SELECTED_PIECE.name
+                            SELECTED_PIECE.is_checked(chessboard, False)
                             chessboard.update(screen)
                             if SELECTED_PIECE.color == "b":
                                 chessboard.current_color = "w"
                             else:
                                 chessboard.current_color = "b"
                             chessboard.flags_mas = []
+                            chessboard.print()
                             continue
                         if POSITIONS[coords[0]][coords[1]] != '':
                             SELECTED_PIECE.draw_valid_moves(chessboard, screen)
                         if POSITIONS[coords[0]][coords[1]] == '' and SELECTED_PIECE != None:
                             SELECTED_PIECE = None
                             chessboard.update(screen)
-
             chessboard.draw_playboard()
             chessboard.all_sprites.draw(screen)
