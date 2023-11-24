@@ -1,4 +1,7 @@
+import copy
 from math import ceil
+
+import pyautogui
 import pygame as pg
 from game_config import *
 
@@ -20,6 +23,20 @@ class Chessboard:
         self.flags_mas = []
         self.all_sprites.update()
         self.current_color = TURN
+
+    def is_the_game_over(self):
+        chessboard = self
+        for figure in self.all_sprites:
+            valid_moves = figure.get_valid_moves(chessboard)
+            final_moves = figure.forbidden_move_ban(valid_moves, chessboard)
+            if len(final_moves) != 0:
+                return
+        if TURN == "w":
+            pyautogui.alert("White wins")
+            return True
+        else:
+            pyautogui.alert("Black wins")
+            return True
 
     def print(self):
         figures = {'' : '', 'b_ki' : '♔', 'b_qu' : '♕', 'b_ro' : '♖', 'b_bi' : '♗', 'b_kn' : '♘', 'b_pa' : '♙',
@@ -180,30 +197,56 @@ class Figure(pg.sprite.Sprite):
                         if is_fake == False:
                             king.image = pg.image.load(f"assets\/figures\/{king.color}_ki_checked.png")
                         return king.color
-
         if flag == False:
             for king in chessboard.all_sprites:
                 if king.square_pos in kings_pos:
                     king.image = pg.image.load(f"assets\/figures\/{king.color}_ki.png")
 
     def forbidden_move_ban(self, valid_moves, chessboard):
-        fake_Positions = POSITIONS
-        current_figure = fake_Positions[self.square_pos[0]][self.square_pos[1]]
+        kings_pos = []
+        for i in range(0, 8):
+            for j in range(0, 8):
+                if POSITIONS[i][j] == "w_ki" or POSITIONS[i][j] == "b_ki":
+                    kings_pos.append((i, j))
+
+        current_figure = POSITIONS[self.square_pos[0]][self.square_pos[1]]
         default_pos = (self.square_pos[0], self.square_pos[1])
         banned_moves = []
         for move in valid_moves:
-            fake_Positions[self.square_pos[0]][self.square_pos[1]] = ''
-            fake_Positions[move[0]][move[1]] = current_figure
-
-            if self.is_checked(chessboard, True) != TURN and self.is_checked(chessboard, True) != None:
-                try:
-                    banned_moves.append(move)
-                except:
-                    pass
-            fake_Positions[move[0]][move[1]] = ''
-            fake_Positions[default_pos[0]][default_pos[1]] = current_figure
+            POSITIONS[self.square_pos[0]][self.square_pos[1]] = ''
+            default_figure = POSITIONS[move[0]][move[1]]
+            POSITIONS[move[0]][move[1]] = current_figure
+            for piece in chessboard.all_sprites:
+                if piece.square_pos == default_pos:
+                    piece.square_pos = move
+                    current_piece = piece
+                    break
+            if current_piece.name == "_ki":
+                kings_pos = []
+                for i in range(0, 8):
+                    for j in range(0, 8):
+                        if POSITIONS[i][j] == "w_ki" or POSITIONS[i][j] == "b_ki":
+                            kings_pos.append((i, j))
+            for figure in chessboard.all_sprites:
+                moves = figure.get_valid_moves(chessboard)
+                if kings_pos[0] in moves:
+                    for king in chessboard.all_sprites:
+                        if king.square_pos == kings_pos[0]:
+                            banned_moves.append(move)
+            for figure in chessboard.all_sprites:
+                moves = figure.get_valid_moves(chessboard)
+                if kings_pos[1] in moves:
+                    for king in chessboard.all_sprites:
+                        if king.square_pos == kings_pos[1]:
+                            banned_moves.append(move)
+            current_piece.square_pos = default_pos
+            POSITIONS[default_pos[0]][default_pos[1]] = current_figure
+            POSITIONS[move[0]][move[1]] = default_figure
         for move in banned_moves:
-            valid_moves.remove(move)
+            try:
+                valid_moves.remove(move)
+            except ValueError:
+                pass
         return valid_moves
 
 
@@ -250,6 +293,7 @@ class Pawn(Figure):
     def draw_valid_moves(self, chessboard, screen):
         chessboard.flag_sprites = pg.sprite.Group()
         self.valid_moves = self.get_valid_moves(chessboard)
+        self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         print(self.valid_moves)
         for flag_pos in self.valid_moves:
             chessboard.flag_sprites.add(Flag(flag_pos))
@@ -331,11 +375,13 @@ class Rook(Figure):
                     elif POSITIONS[y][x - i][0] != self.color:
                         valid_moves.append((y, x - i))
                         cond4 = True
+        # здесь должен быть метод бана ходов приводящих к шаху
         return valid_moves
 
     def draw_valid_moves(self, chessboard, screen):
         chessboard.flag_sprites = pg.sprite.Group()
         self.valid_moves = self.get_valid_moves(chessboard)
+        self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         print(self.valid_moves)
         for flag_pos in self.valid_moves:
             chessboard.flag_sprites.add(Flag(flag_pos))
@@ -419,11 +465,13 @@ class Bishop(Figure):
                     elif POSITIONS[y + i][x - i][0] != self.color:
                         valid_moves.append((y + i, x - i))
                         cond4 = True
+        # здесь должен быть метод бана ходов приводящих к шаху
         return valid_moves
 
     def draw_valid_moves(self, chessboard, screen):
         chessboard.flag_sprites = pg.sprite.Group()
         self.valid_moves = self.get_valid_moves(chessboard)
+        self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         print(self.valid_moves)
         for flag_pos in self.valid_moves:
             chessboard.flag_sprites.add(Flag(flag_pos))
@@ -543,11 +591,13 @@ class Queen(Figure):
                     elif POSITIONS[y + i][x - i][0] != self.color:
                         valid_moves.append((y + i, x - i))
                         cond8 = True
+        # здесь должен быть метод бана ходов приводящих к шаху
         return valid_moves
 
     def draw_valid_moves(self, chessboard, screen):
         chessboard.flag_sprites = pg.sprite.Group()
         self.valid_moves = self.get_valid_moves(chessboard)
+        self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         print(self.valid_moves)
         for flag_pos in self.valid_moves:
             chessboard.flag_sprites.add(Flag(flag_pos))
@@ -639,6 +689,7 @@ class King(Figure):
     def draw_valid_moves(self, chessboard, screen):
         chessboard.flag_sprites = pg.sprite.Group()
         self.valid_moves = self.get_valid_moves(chessboard)
+        self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         print(self.valid_moves)
         for flag_pos in self.valid_moves:
             chessboard.flag_sprites.add(Flag(flag_pos))
@@ -713,6 +764,7 @@ class Knight(Figure):
     def draw_valid_moves(self, chessboard, screen):
         chessboard.flag_sprites = pg.sprite.Group()
         self.valid_moves = self.get_valid_moves(chessboard)
+        self.valid_moves = self.forbidden_move_ban(self.valid_moves, chessboard)
         print(self.valid_moves)
         for flag_pos in self.valid_moves:
             chessboard.flag_sprites.add(Flag(flag_pos))

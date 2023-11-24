@@ -1,3 +1,4 @@
+import pyautogui
 import pygame as pg
 from game_config import *
 import numpy as np
@@ -14,6 +15,9 @@ if __name__ == '__main__':
     while run:
         clock.tick(FPS)
         for event in pg.event.get():
+            if chessboard.is_the_game_over():
+                run = False
+                break
             if event.type == pg.QUIT:
                 pg.quit()
                 run = False
@@ -101,5 +105,6 @@ if __name__ == '__main__':
                         if POSITIONS[coords[0]][coords[1]] == '' and SELECTED_PIECE != None:
                             SELECTED_PIECE = None
                             chessboard.update(screen)
+
             chessboard.draw_playboard()
             chessboard.all_sprites.draw(screen)
