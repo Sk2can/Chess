@@ -185,8 +185,6 @@ class Figure(pg.sprite.Sprite):
                     kings_pos.append((i, j))
         for figure in chessboard.all_sprites:
             moves = figure.get_valid_moves(chessboard)
-            # if figure.square_pos == (-1,-1):
-            #     moves = []
             if kings_pos[0] in moves:
                 for king in chessboard.all_sprites:
                     if king.square_pos == kings_pos[0]:
@@ -235,14 +233,6 @@ class Figure(pg.sprite.Sprite):
                 if piece.square_pos == default_pos:
                     current_piece = piece
                     piece.square_pos = move
-                    # if attacked_piece != None:
-                    #     def_pos = attacked_piece.square_pos
-                    #      attacked_piece.square_pos = (-1,-1)
-                    #      if attacked_piece.is_checked(chessboard, False) in ["w","b"]:
-                    #          attacked_piece.square_pos = def_pos
-                    #     if piece.is_checked(chessboard, False) == current_piece.color:
-                    #         banned_moves.append(move)
-                    #         attacked_piece.square_pos = def_pos
                     break
             if current_piece.name == "_ki":
                 kings_pos = []
@@ -250,7 +240,6 @@ class Figure(pg.sprite.Sprite):
                     for j in range(0, 8):
                         if POSITIONS[i][j] == "w_ki" or POSITIONS[i][j] == "b_ki":
                             kings_pos.append((i, j))
-            #
             for figure in chessboard.all_sprites:
                 moves = figure.get_valid_moves(chessboard)
                 if kings_pos[0] in moves:
@@ -264,10 +253,6 @@ class Figure(pg.sprite.Sprite):
                         if piece.square_pos == kings_pos[1]:
                             banned_moves.append(move)
             #востанавливаем поле в состояние до фиктивных ходов
-            # if attacked_piece != None:
-            #     if current_piece.is_checked(chessboard, False) == current_piece.color:
-            #         banned_moves.remove(move)
-            #     attacked_piece.square_pos = move
             current_piece.square_pos = default_pos
             POSITIONS[default_pos[0]][default_pos[1]] = current_figure
             POSITIONS[move[0]][move[1]] = default_figure
