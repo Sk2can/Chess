@@ -24,7 +24,8 @@ if __name__ == '__main__':
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     coords = chessboard.get_square_from_pos((pg.mouse.get_pos()[1], pg.mouse.get_pos()[0]))
-                    SELECTED_PIECE = chessboard.find_object(chessboard.get_square_from_pos(pg.mouse.get_pos()),SELECTED_PIECE)
+                    SELECTED_PIECE = chessboard.find_object(chessboard.get_square_from_pos(pg.mouse.get_pos()),
+                                                            SELECTED_PIECE)
 
                     if chessboard.current_color == "w":
                         if ((SELECTED_PIECE == None and len(chessboard.flags_mas) != 0) or

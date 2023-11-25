@@ -1,4 +1,3 @@
-import copy
 from math import ceil
 
 import pyautogui
@@ -39,8 +38,8 @@ class Chessboard:
             return True
 
     def print(self):
-        figures = {'' : '', 'b_ki' : '♔', 'b_qu' : '♕', 'b_ro' : '♖', 'b_bi' : '♗', 'b_kn' : '♘', 'b_pa' : '♙',
-                   'w_ki' : '♚', 'w_qu' : '♛', 'w_ro' : '♜', 'w_bi' : '♝', 'w_kn' : '♞', 'w_pa' : '♟︎'}
+        figures = {'': '', 'b_ki': '♔', 'b_qu': '♕', 'b_ro': '♖', 'b_bi': '♗', 'b_kn': '♘', 'b_pa': '♙',
+                   'w_ki': '♚', 'w_qu': '♛', 'w_ro': '♜', 'w_bi': '♝', 'w_kn': '♞', 'w_pa': '♟︎'}
         for y in range(8):
             line = ""
             for x in range(8):
@@ -209,26 +208,26 @@ class Figure(pg.sprite.Sprite):
                 if POSITIONS[i][j] == "w_ki" or POSITIONS[i][j] == "b_ki":
                     kings_pos.append((i, j))
 
-        #название фигуры, которая совершает фиктивный ход
+        # название фигуры, которая совершает фиктивный ход
         current_figure = POSITIONS[self.square_pos[0]][self.square_pos[1]]
-        #ее изначальная позиция
+        # ее изначальная позиция
         default_pos = (self.square_pos[0], self.square_pos[1])
         banned_moves = []
-        #совершает каждый возможный ход фиктивно
+        # совершает каждый возможный ход фиктивно
         for move in valid_moves:
             attacked_piece = None
-            #делает ход в массиве доски
+            # делает ход в массиве доски
             POSITIONS[self.square_pos[0]][self.square_pos[1]] = ''
-            #значальное значение ячейки на которую ходят
+            # значальное значение ячейки на которую ходят
             default_figure = POSITIONS[move[0]][move[1]]
-            #помещают в нее текущую фигуру
+            # помещают в нее текущую фигуру
             POSITIONS[move[0]][move[1]] = current_figure
-            #узнаем есть ли на клетке для хода вражеская фигура
+            # узнаем есть ли на клетке для хода вражеская фигура
             for piece in chessboard.all_sprites:
                 if piece.square_pos == move:
                     attacked_piece = piece
                     break
-            #находим объект фигуры которой ходим и совершаем фиктивный ход
+            # находим объект фигуры которой ходим и совершаем фиктивный ход
             for piece in chessboard.all_sprites:
                 if piece.square_pos == default_pos:
                     current_piece = piece
@@ -252,11 +251,11 @@ class Figure(pg.sprite.Sprite):
                     for piece in chessboard.all_sprites:
                         if piece.square_pos == kings_pos[1]:
                             banned_moves.append(move)
-            #востанавливаем поле в состояние до фиктивных ходов
+            # востанавливаем поле в состояние до фиктивных ходов
             current_piece.square_pos = default_pos
             POSITIONS[default_pos[0]][default_pos[1]] = current_figure
             POSITIONS[move[0]][move[1]] = default_figure
-        #удаляем забаненые ходы
+        # удаляем забаненые ходы
         for move in banned_moves:
             try:
                 valid_moves.remove(move)
@@ -284,7 +283,7 @@ class Pawn(Figure):
                 valid_moves.append((y + 1, x))
                 if self.has_moved == False and POSITIONS[y + 2][x] == '':
                     valid_moves.append((y + 2, x))
-            if self.border_check((y + 1, x-1)):
+            if self.border_check((y + 1, x - 1)):
                 if POSITIONS[y + 1][x - 1] != '' and POSITIONS[y + 1][x - 1][0] == "w":
                     valid_moves.append((y + 1, x - 1))
             if self.border_check((y + 1, x + 1)):
@@ -453,7 +452,7 @@ class Bishop(Figure):
                     elif POSITIONS[y + i][x + i][0] != self.color:
                         valid_moves.append((y + i, x + i))
                         cond1 = True
-            if self.border_check((y - i, x-i)):
+            if self.border_check((y - i, x - i)):
                 if cond2 == False:
                     if POSITIONS[y - i][x - i] == '':
                         valid_moves.append((y - i, x - i))
@@ -471,7 +470,7 @@ class Bishop(Figure):
                     elif POSITIONS[y - i][x + i][0] != self.color:
                         valid_moves.append((y - i, x + i))
                         cond3 = True
-            if self.border_check((y + i, x-i)):
+            if self.border_check((y + i, x - i)):
                 if cond4 == False:
                     if POSITIONS[y + i][x - i] == '':
                         valid_moves.append((y + i, x - i))
@@ -579,7 +578,7 @@ class Queen(Figure):
                     elif POSITIONS[y + i][x + i][0] != self.color:
                         valid_moves.append((y + i, x + i))
                         cond5 = True
-            if self.border_check((y - i, x-i)):
+            if self.border_check((y - i, x - i)):
                 if cond6 == False:
                     if POSITIONS[y - i][x - i] == '':
                         valid_moves.append((y - i, x - i))
@@ -597,7 +596,7 @@ class Queen(Figure):
                     elif POSITIONS[y - i][x + i][0] != self.color:
                         valid_moves.append((y - i, x + i))
                         cond7 = True
-            if self.border_check((y + i, x-i)):
+            if self.border_check((y + i, x - i)):
                 if cond8 == False:
                     if POSITIONS[y + i][x - i] == '':
                         valid_moves.append((y + i, x - i))
@@ -635,7 +634,6 @@ class Queen(Figure):
         self.pos = chessboard.get_center_of_cell(self.square_pos)
         self.valid_moves = []
 
-
     def attack(self, attacked_figure, new_pos, chessboard):
         attacked_figure.kill()
         n = self.square_pos[0] - new_pos[0]
@@ -667,17 +665,17 @@ class King(Figure):
                 valid_moves.append((y + 1, x + 1))
             elif POSITIONS[y + 1][x + 1][0] != self.color:
                 valid_moves.append((y + 1, x + 1))
-        if self.border_check((y - 1, x-1)):
+        if self.border_check((y - 1, x - 1)):
             if POSITIONS[y - 1][x - 1] == '':
                 valid_moves.append((y - 1, x - 1))
             elif POSITIONS[y - 1][x - 1][0] != self.color:
                 valid_moves.append((y - 1, x - 1))
-        if self.border_check((y - 1, x+1)):
+        if self.border_check((y - 1, x + 1)):
             if POSITIONS[y - 1][x + 1] == '':
                 valid_moves.append((y - 1, x + 1))
             elif POSITIONS[y - 1][x + 1][0] != self.color:
                 valid_moves.append((y - 1, x + 1))
-        if self.border_check((y + 1, x-1)):
+        if self.border_check((y + 1, x - 1)):
             if POSITIONS[y + 1][x - 1] == '':
                 valid_moves.append((y + 1, x - 1))
             elif POSITIONS[y + 1][x - 1][0] != self.color:
@@ -687,7 +685,7 @@ class King(Figure):
                 valid_moves.append((y - 1, x))
             elif POSITIONS[y - 1][x][0] != self.color:
                 valid_moves.append((y - 1, x))
-        if self.border_check((y, x+1)):
+        if self.border_check((y, x + 1)):
             if POSITIONS[y][x + 1] == '':
                 valid_moves.append((y, x + 1))
             elif POSITIONS[y][x + 1][0] != self.color:
@@ -697,12 +695,12 @@ class King(Figure):
                 valid_moves.append((y + 1, x))
             elif POSITIONS[y + 1][x][0] != self.color:
                 valid_moves.append((y + 1, x))
-        if self.border_check((y, x-1)):
+        if self.border_check((y, x - 1)):
             if POSITIONS[y][x - 1] == '':
                 valid_moves.append((y, x - 1))
             elif POSITIONS[y][x - 1][0] != self.color:
                 valid_moves.append((y, x - 1))
-        #рокировка
+        # рокировка
         for rook in chessboard.all_sprites:
             if rook.name == "_ro" and rook.color == self.color:
                 if rook.has_moved == True:
@@ -713,12 +711,13 @@ class King(Figure):
                 if rook.square_pos[1] == 0:
                     self.long_rook = rook
                     self.castling_piece = rook
-        if self.border_check((y, x-2)):
+        if self.border_check((y, x - 2)):
             if (POSITIONS[y][x - 2] == '' and POSITIONS[y][x - 3] == '' and POSITIONS[y][x - 1] == '' and
                     self.has_moved == False and self.long_rook != None):
                 valid_moves.append((y, x - 2))
         if self.border_check((y, x + 2)):
-            if POSITIONS[y][x + 2] == '' and POSITIONS[y][x + 1] == '' and self.has_moved == False and self.short_rook != None:
+            if POSITIONS[y][x + 2] == '' and POSITIONS[y][
+                x + 1] == '' and self.has_moved == False and self.short_rook != None:
                 valid_moves.append((y, x + 2))
         return valid_moves
 
@@ -750,12 +749,16 @@ class King(Figure):
         if is_castling:
             if m == -2:
                 POSITIONS[self.short_rook.square_pos[0]][self.short_rook.square_pos[1]] = ''
-                POSITIONS[self.short_rook.square_pos[0]][self.short_rook.square_pos[1]-2] = self.short_rook.color + self.short_rook.name
-                self.short_rook.move((self.short_rook.square_pos[0], self.short_rook.square_pos[1] - 2), chessboard, SELECTED_PIECE)
+                POSITIONS[self.short_rook.square_pos[0]][
+                    self.short_rook.square_pos[1] - 2] = self.short_rook.color + self.short_rook.name
+                self.short_rook.move((self.short_rook.square_pos[0], self.short_rook.square_pos[1] - 2), chessboard,
+                                     SELECTED_PIECE)
             if m == 2:
                 POSITIONS[self.long_rook.square_pos[0]][self.long_rook.square_pos[1]] = ''
-                POSITIONS[self.long_rook.square_pos[0]][self.long_rook.square_pos[1] + 3] = self.long_rook.color + self.long_rook.name
-                self.long_rook.move((self.long_rook.square_pos[0], self.long_rook.square_pos[1] + 3), chessboard, SELECTED_PIECE)
+                POSITIONS[self.long_rook.square_pos[0]][
+                    self.long_rook.square_pos[1] + 3] = self.long_rook.color + self.long_rook.name
+                self.long_rook.move((self.long_rook.square_pos[0], self.long_rook.square_pos[1] + 3), chessboard,
+                                    SELECTED_PIECE)
         self.square_pos = new_pos
         self.pos = chessboard.get_center_of_cell(self.square_pos)
         self.valid_moves = []
@@ -783,25 +786,25 @@ class Knight(Figure):
         valid_moves = []
         pos = chessboard.get_square_from_pos((self.pos[1], self.pos[0]))
         y, x = pos[0], pos[1]
-        if self.border_check((y - 2, x-1)):
+        if self.border_check((y - 2, x - 1)):
             if POSITIONS[y - 2][x - 1] == '' or POSITIONS[y - 2][x - 1][0] != self.color:
                 valid_moves.append((y - 2, x - 1))
-        if self.border_check((y - 2, x+ 1)):
+        if self.border_check((y - 2, x + 1)):
             if POSITIONS[y - 2][x + 1] == '' or POSITIONS[y - 2][x + 1][0] != self.color:
                 valid_moves.append((y - 2, x + 1))
-        if self.border_check((y + 2, x-1)):
+        if self.border_check((y + 2, x - 1)):
             if POSITIONS[y + 2][x - 1] == '' or POSITIONS[y + 2][x - 1][0] != self.color:
                 valid_moves.append((y + 2, x - 1))
-        if self.border_check((y + 2, x+1)):
+        if self.border_check((y + 2, x + 1)):
             if POSITIONS[y + 2][x + 1] == '' or POSITIONS[y + 2][x + 1][0] != self.color:
                 valid_moves.append((y + 2, x + 1))
         if self.border_check((y - 1, x - 2)):
             if POSITIONS[y - 1][x - 2] == '' or POSITIONS[y - 1][x - 2][0] != self.color:
                 valid_moves.append((y - 1, x - 2))
-        if self.border_check((y - 1, x +2)):
+        if self.border_check((y - 1, x + 2)):
             if POSITIONS[y - 1][x + 2] == '' or POSITIONS[y - 1][x + 2][0] != self.color:
                 valid_moves.append((y - 1, x + 2))
-        if self.border_check((y + 1, x-2)):
+        if self.border_check((y + 1, x - 2)):
             if POSITIONS[y + 1][x - 2] == '' or POSITIONS[y + 1][x - 2][0] != self.color:
                 valid_moves.append((y + 1, x - 2))
         if self.border_check((y + 1, x + 2)):
