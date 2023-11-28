@@ -15,9 +15,12 @@ if __name__ == '__main__':
     while run:
         clock.tick(FPS)
         for event in pg.event.get():
-            if chessboard.is_the_game_over():
-                run = False
-                break
+            if chessboard.is_the_game_over() == "w":
+                pyautogui.alert("Победа белых!")
+                exit()
+            if chessboard.is_the_game_over() == "b":
+                pyautogui.alert("Победа чёрных!")
+                exit()
             if event.type == pg.QUIT:
                 pg.quit()
                 run = False

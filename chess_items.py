@@ -25,18 +25,23 @@ class Chessboard:
 
     def is_the_game_over(self):
         chessboard = self
-        for figure in self.all_sprites:
-            valid_moves = figure.get_valid_moves(chessboard)
-            final_moves = figure.forbidden_move_ban(valid_moves, chessboard)
-            if len(final_moves) != 0:
-                return
-        if TURN == "w":
-            pyautogui.alert("White wins")
-            return True
-        else:
-            pyautogui.alert("Black wins")
-            return True
-
+        b_moves = 0
+        w_moves = 0
+        for piece in self.all_sprites:
+            if piece.color == "w":
+                final_moves = piece.get_valid_moves(chessboard)
+                final_moves = piece.forbidden_move_ban(final_moves, chessboard)
+                w_moves += len(final_moves)
+            if piece.color == "b":
+                final_moves = piece.get_valid_moves(chessboard)
+                final_moves = piece.forbidden_move_ban(final_moves, chessboard)
+                b_moves += len(final_moves)
+            if b_moves and w_moves !=0:
+                break
+        if b_moves == 0:
+            return "w"
+        if w_moves == 0:
+            return "b"
     def print(self):
         figures = {'': '', 'b_ki': '♔', 'b_qu': '♕', 'b_ro': '♖', 'b_bi': '♗', 'b_kn': '♘', 'b_pa': '♙',
                    'w_ki': '♚', 'w_qu': '♛', 'w_ro': '♜', 'w_bi': '♝', 'w_kn': '♞', 'w_pa': '♟︎'}
@@ -202,20 +207,23 @@ class Figure(pg.sprite.Sprite):
                     king.image = pg.image.load(f"assets\/figures\/{king.color}_ki.png")
 
     def forbidden_move_ban(self, valid_moves, chessboard):
-        kings_pos = []
+        kings_pos = {"w" : (-1,-1), "b" : (-1,-1)}
         for i in range(0, 8):
             for j in range(0, 8):
-                if POSITIONS[i][j] == "w_ki" or POSITIONS[i][j] == "b_ki":
-                    kings_pos.append((i, j))
+                if POSITIONS[i][j] == "w_ki":
+                    kings_pos["w"] = (i,j)
+                if POSITIONS[i][j] == "b_ki":
+                    kings_pos["b"] = (i,j)
 
         # название фигуры, которая совершает фиктивный ход
         current_figure = POSITIONS[self.square_pos[0]][self.square_pos[1]]
         # ее изначальная позиция
         default_pos = (self.square_pos[0], self.square_pos[1])
+        attacking_moves = []
         banned_moves = []
+        attacking_piece = None
         # совершает каждый возможный ход фиктивно
         for move in valid_moves:
-            attacked_piece = None
             # делает ход в массиве доски
             POSITIONS[self.square_pos[0]][self.square_pos[1]] = ''
             # значальное значение ячейки на которую ходят
@@ -224,8 +232,11 @@ class Figure(pg.sprite.Sprite):
             POSITIONS[move[0]][move[1]] = current_figure
             # узнаем есть ли на клетке для хода вражеская фигура
             for piece in chessboard.all_sprites:
-                if piece.square_pos == move:
-                    attacked_piece = piece
+                if kings_pos["w"] in piece.get_valid_moves(chessboard) and piece.color == "b":
+                    attacking_piece = piece
+                    break
+                if kings_pos["b"] in piece.get_valid_moves(chessboard) and piece.color == "w":
+                    attacking_piece = piece
                     break
             # находим объект фигуры которой ходим и совершаем фиктивный ход
             for piece in chessboard.all_sprites:
@@ -234,28 +245,32 @@ class Figure(pg.sprite.Sprite):
                     piece.square_pos = move
                     break
             if current_piece.name == "_ki":
-                kings_pos = []
+                kings_pos = {"w": (-1, -1), "b": (-1, -1)}
                 for i in range(0, 8):
                     for j in range(0, 8):
-                        if POSITIONS[i][j] == "w_ki" or POSITIONS[i][j] == "b_ki":
-                            kings_pos.append((i, j))
+                        if POSITIONS[i][j] == "w_ki":
+                            kings_pos["w"] = (i, j)
+                        if POSITIONS[i][j] == "b_ki":
+                            kings_pos["b"] = (i, j)
             for figure in chessboard.all_sprites:
                 moves = figure.get_valid_moves(chessboard)
-                if kings_pos[0] in moves:
-                    for piece in chessboard.all_sprites:
-                        if piece.square_pos == kings_pos[0]:
-                            banned_moves.append(move)
-            for figure in chessboard.all_sprites:
-                moves = figure.get_valid_moves(chessboard)
-                if kings_pos[1] in moves:
-                    for piece in chessboard.all_sprites:
-                        if piece.square_pos == kings_pos[1]:
-                            banned_moves.append(move)
+                if figure.color == "b":
+                    if kings_pos["w"] in moves and piece.color !="b":
+                        banned_moves.append(move)
+                        #добавление запрещенных ходов
+
+                if figure.color == "w" and piece.color !="w":
+                    if kings_pos["b"] in moves:
+                        banned_moves.append(move)
+                        # добавление запрещенных ходов
+
             # востанавливаем поле в состояние до фиктивных ходов
             current_piece.square_pos = default_pos
             POSITIONS[default_pos[0]][default_pos[1]] = current_figure
             POSITIONS[move[0]][move[1]] = default_figure
         # удаляем забаненые ходы
+        if attacking_piece != None and attacking_piece.square_pos in banned_moves and self.name != "_ki":
+            banned_moves.remove(attacking_piece.square_pos)
         for move in banned_moves:
             try:
                 valid_moves.remove(move)
