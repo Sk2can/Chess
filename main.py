@@ -1,8 +1,11 @@
+import sys
 import pyautogui
+import pygame
 import pygame as pg
 from game_config import *
 import numpy as np
 from chess_items import *
+import os
 
 if __name__ == '__main__':
     clock = pg.time.Clock()
@@ -17,12 +20,11 @@ if __name__ == '__main__':
         for event in pg.event.get():
             if chessboard.is_the_game_over() == "w":
                 pyautogui.alert("Победа белых!")
-                exit()
+                run = False
             if chessboard.is_the_game_over() == "b":
                 pyautogui.alert("Победа чёрных!")
-                exit()
+                run = False
             if event.type == pg.QUIT:
-                pg.quit()
                 run = False
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -112,3 +114,5 @@ if __name__ == '__main__':
 
             chessboard.draw_playboard()
             chessboard.all_sprites.draw(screen)
+    pygame.quit()
+    sys.exit()
