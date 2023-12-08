@@ -260,8 +260,8 @@ class Figure(pg.sprite.Sprite):
                         banned_moves.append(move)
                         #добавление запрещенных ходов
 
-                if figure.color == "w" and piece.color !="w":
-                    if kings_pos["b"] in moves:
+                if figure.color == "w":
+                    if kings_pos["b"] in moves and piece.color !="w":
                         banned_moves.append(move)
                         # добавление запрещенных ходов
 
